@@ -53,6 +53,7 @@ bool g_bGLCanvasSizeChanged = false;
 namespace laya
 {
     extern JCWorkerThread* g_DecThread;
+//    JCScriptRuntime* JCConch::m_pScrpitRuntime = NULL;
     JCConch* JCConch::s_pConch = NULL;
     int64_t JCConch::s_nUpdateTime = 0;
     JCFileSource* JCConch::s_pAssetsFiles = NULL;
@@ -89,7 +90,11 @@ namespace laya
         pdmgr->init(nDownloadThreadNum);
         m_pFileResMgr = new JCFileResManager(pdmgr);
         JCWebGLPlus::getInstance()->init(g_kSystemConfig.m_nThreadMODE);
-        m_pScrpitRuntime = new JCScriptRuntime();
+        bool bNeedInit = false;
+//        if ( m_pScrpitRuntime == NULL ) {
+            bNeedInit = true;
+            m_pScrpitRuntime = new JCScriptRuntime();
+//        }
 		s_pConchRender.reset(new JCConchRender(m_pFileResMgr,JCWebGLPlus::getInstance()->m_pRArrayBufferManager,m_pScrpitRuntime->m_pRegister,JCWebGLPlus::getInstance()));
 
         //------------------------------------------------------------------------------
@@ -124,12 +129,14 @@ namespace laya
         m_strStartJS = "scripts/apploader.js";
         if (g_kSystemConfig.m_nThreadMODE == THREAD_MODE_DOUBLE)
         {
-            m_pScrpitRuntime->init(m_pFileResMgr, m_pAssetsRes, &m_ThreadCmdMgr);
+            if ( bNeedInit )
+                m_pScrpitRuntime->init(m_pFileResMgr, m_pAssetsRes, &m_ThreadCmdMgr);
             m_pFileResMgr->m_pCmdPoster = &m_ThreadCmdMgr;
         }
         else
         {
-            m_pScrpitRuntime->init(m_pFileResMgr, m_pAssetsRes, m_pScrpitRuntime);
+            if ( bNeedInit )
+                m_pScrpitRuntime->init(m_pFileResMgr, m_pAssetsRes, m_pScrpitRuntime);
             m_pFileResMgr->m_pCmdPoster = m_pScrpitRuntime;
         }
         m_nJSDebugMode = nJSDebugMode;
@@ -156,9 +163,9 @@ namespace laya
 		s_pConch = NULL;
         if (m_pScrpitRuntime) 
         {
-            m_pScrpitRuntime->stop();
-            delete m_pScrpitRuntime;
-            m_pScrpitRuntime = NULL;
+//            m_pScrpitRuntime->stop();
+//            delete m_pScrpitRuntime;
+//            m_pScrpitRuntime = NULL;
         }
 #ifdef JS_V8_DEBUGGER
         if (m_pDbgAgent) 

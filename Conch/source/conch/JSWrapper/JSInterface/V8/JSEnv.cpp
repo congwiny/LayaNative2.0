@@ -21,41 +21,46 @@
 namespace laya
 {
 	v8::Persistent<v8::Context> Javascript::m_DebugMessageContext;
+//	v8::Isolate* Javascript::m_pIsolate = NULL;
+	v8::Platform* Javascript::m_pPlatform = NULL;
+
 	const char* ToCString(const v8::String::Utf8Value& value)
     {
 		return *value ? *value : "<string conversion failed>";
 	}
 	Javascript::Javascript() 
     {
-		m_pIsolate = NULL;
-		m_pPlatform = NULL;
-        m_nListenPort = 0;
+//		m_pIsolate = NULL;
+//		m_pPlatform = NULL;
+//        m_nListenPort = 0;
 
-
-		m_pPlatform = v8::platform::NewDefaultPlatform().release();
-		v8::V8::InitializePlatform(m_pPlatform);
-		v8::V8::Initialize();
-		static char* flags[] =
-		{
+		if ( m_pPlatform == NULL ) {
+			m_pPlatform = v8::platform::NewDefaultPlatform().release();
+			v8::V8::InitializePlatform(m_pPlatform);
+			v8::V8::Initialize();
+			static char* flags[] =
+					{
 #if __APPLE__
-            " --jitless",
+							" --jitless",
 #endif
-			"--expose_gc",
-			"--no-flush-bytecode",
-			"--no-lazy",
-		};
-		for (auto f : flags)
-		{
-			v8::V8::SetFlagsFromString(f, strlen(f));
+							"--expose_gc",
+							"--no-flush-bytecode",
+							"--no-lazy",
+					};
+			for (auto f : flags)
+			{
+				v8::V8::SetFlagsFromString(f, strlen(f));
+			}
 		}
+
 		
 	}
 	Javascript::~Javascript()
 	{
 
-		v8::V8::Dispose();
-		v8::V8::ShutdownPlatform();
-		delete m_pPlatform;
+//		v8::V8::Dispose();
+//		v8::V8::ShutdownPlatform();
+//		delete m_pPlatform;
 	}
 	void Javascript::init(int nPort) 
     {
@@ -69,11 +74,14 @@ namespace laya
     {
        
     }
-    void Javascript::initJSEngine()
-    {
-		v8::Isolate::CreateParams create_params;
-		create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-		m_pIsolate = v8::Isolate::New(create_params);
+    void Javascript::initJSEngine() {
+
+//		if (m_pIsolate == NULL) {
+			v8::Isolate::CreateParams create_params;
+			create_params.array_buffer_allocator = v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+			m_pIsolate = v8::Isolate::New(create_params);
+//		}
+
 		m_pIsolate->Enter();
 		v8::HandleScope handle_scope(m_pIsolate);
 		v8::Local<v8::Context> context = v8::Context::New(m_pIsolate);
@@ -90,11 +98,9 @@ namespace laya
 			m_context.Reset();
 			delete m_IsolateData;
 			m_pIsolate->Exit();
-			
 		}
 		m_pIsolate->Dispose();
-
-    }
+	}
 	void Javascript::run(const char* sSource, std::function<void(void)> preRunFunc)
     {
 	}
@@ -120,6 +126,15 @@ namespace laya
     {
 
     }
+
+	void JSV8Worker::stop()
+	{
+		if (m_bStop)return;
+		m_bStop = true;
+		m_ThreadTasks.Stop();
+		m_bdbgThreadStarted = false;
+	}
+
 	void JSV8Worker::_defRunLoop()
 	{
 #ifdef WIN32

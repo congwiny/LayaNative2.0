@@ -58,11 +58,11 @@ namespace laya
 
 	public:
         static v8::Persistent<v8::Context>  m_DebugMessageContext;
-		v8::Isolate*	                    m_pIsolate;
-		int                                 m_nListenPort;
+        v8::Isolate*	                    m_pIsolate;
+		int                                 m_nListenPort = 0;
 		v8::Global<v8::Context>             m_context;
-		v8::Platform*						m_pPlatform = NULL;
-		IsolateData*						m_IsolateData;
+		static v8::Platform*						m_pPlatform;
+		IsolateData*						m_IsolateData = NULL;
 	};
 
 
@@ -101,6 +101,7 @@ namespace laya
 
         ~JSV8Worker();
 
+        void stop();
         //因为要trycatch，所以只好再抄一份了
         virtual void _defRunLoop();
 

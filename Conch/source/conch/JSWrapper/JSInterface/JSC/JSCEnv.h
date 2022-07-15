@@ -27,7 +27,7 @@ namespace laya
         typedef void(*voidfun)(void* data);
         Javascript()
         {
-
+            m_create_params=NULL;
         }
         void init(int nPort)
         {

@@ -195,7 +195,7 @@ namespace laya
             delete m_pGCCmd;
             m_pGCCmd = NULL;
         }
-
+        LOGE("JCScriptRuntime releaseInstance");
         JCWebGLPlus::releaseInstance();
         JSLayaGL::releaseInstance();
 
